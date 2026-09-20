@@ -45,4 +45,26 @@ export class AwsDoctorService {
   isConfigured(): boolean {
     return this.isAwsConfigured;
   }
+
+  async updateStatus(status: ScanStatus): Promise<void> {
+    this.statusStore.set(status.scanId, status);
+
+    if (this.ddbDoc && this.isAwsConfigured) {
+      try {
+        await this.ddbDoc.send(new PutCommand({
+          TableName: this.tableName,
+          Item: {
+            scanId: status.scanId,
+            status: status.status,
+            progress: status.progress,
+            currentStep: status.currentStep,
+            repoName: status.repoName,
+            updatedAt: new Date().toISOString(),
+          },
+        }));
+      } catch (err: any) {
+        console.warn(`[AWS DynamoDB] Failed to update scan status for ${status.scanId}:`, err.message);
+      }
+    }
+  }
 }
