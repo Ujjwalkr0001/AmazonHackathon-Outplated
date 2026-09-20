@@ -1,0 +1,18 @@
+diff --git a/app.py b/app.py
+--- a/app.py
++++ b/app.py
+@@ -11,7 +11,12 @@
+ def network_ping():
+     host = request.args.get('host', '127.0.0.1')
+-    # DANGEROUS: os.popen or os.system with raw unsanitized host parameter
+-    # Attacker can pass: 127.0.0.1; cat /etc/passwd or 127.0.0.1 && whoami
+-    command = f"ping -c 1 {host}"
+-    output = os.popen(command).read()
++    import re
++    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
++        return jsonify({"error": "Invalid host format"}), 400
++    try:
++        result = subprocess.run(["ping", "-c", "1", host], capture_output=True, text=True, timeout=5)
++        output = result.stdout + result.stderr
++    except Exception as e:
++        output = str(e)
