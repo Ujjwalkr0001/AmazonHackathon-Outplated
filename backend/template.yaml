@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AI Codebase Doctor - Serverless Architecture
+  AWS S3 + Lambda + Google Gemini Engine + DynamoDB + CloudWatch
+
+Parameters:
+  GeminiApiKey:
+    Type: String
+    NoEcho: true
+    Description: Google Gemini API Key for codebase diagnostics
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 1024
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        GEMINI_API_KEY: !Ref GeminiApiKey
+        S3_BUCKET: !Ref CodebaseDoctorArchiveBucket
+        DYNAMODB_TABLE: !Ref CodebaseDoctorScansTable
+        NODE_ENV: production
+
+Resources:
+  # 1. Amazon S3 Bucket: Project Archives & Diff Patches
+  CodebaseDoctorArchiveBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'codebase-doctor-${AWS::AccountId}-${AWS::Region}-${Environment}'
+      LifecycleConfiguration:
+        Rules:
+          - Id: AutoDeleteTempArchivesAfter24Hours
+            Status: Enabled
+            ExpirationInDays: 1
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, PUT, POST]
+            AllowedOrigins: ['*']
+            MaxAge: 3600
+
+  # 2. Amazon DynamoDB: Scan Records, Diagnostics & Unified Patches
+  CodebaseDoctorScansTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'CodebaseDoctorScans-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: scanId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: scanId
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # 3. AWS Lambda Function: Ingestion, Gemini Orchestrator & Patch Generator
+  CodebaseDoctorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../
+      Handler: backend/dist/server.handler
+      Description: AI Codebase Doctor API and Diagnostic Engine
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref CodebaseDoctorArchiveBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CodebaseDoctorScansTable
+        - CloudWatchPutMetricPolicy: {}
+      Events:
+        HttpApiCatchAll:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+        HttpApiRoot:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+
+  # 4. Amazon CloudWatch Dashboard & Alarms
+  DoctorCloudWatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${CodebaseDoctorFunction}'
+      RetentionInDays: 14
+
+Outputs:
+  HttpApiEndpoint:
+    Description: API Gateway HTTP URL for AI Codebase Doctor
+    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+  S3BucketName:
+    Description: S3 Bucket for Codebase Archives
+    Value: !Ref CodebaseDoctorArchiveBucket
+  DynamoDBTableName:
+    Description: DynamoDB Table Name for Scan Results
+    Value: !Ref CodebaseDoctorScansTable
