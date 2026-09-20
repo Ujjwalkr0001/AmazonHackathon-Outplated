@@ -11,3 +11,5 @@ console.log('Gemini API:', config.geminiApiKey ? '✓ Configured' : '✗ Missing
 
 export * from './types/doctor';
 export * from './config/environment';
+export { RepoPacker } from './services/repoPacker';
+export { PatcherService } from './services/patcher';

@@ -99,15 +99,30 @@ export class PatcherService {
    * @returns Complete CodePatch object
    */
   static buildPatch(rawDiff: string, explanation: string, filePath: string): CodePatch {
+    console.log(`🔨 Building patch for: ${filePath}`);
+    
+    // Clean and standardize the diff
     const cleanedDiff = this.cleanDiff(rawDiff, filePath);
+    
+    // Extract before/after snippets for UI display
     const snippets = this.extractSnippets(cleanedDiff);
 
-    return {
+    // Construct complete patch object
+    const patch: CodePatch = {
       diff: cleanedDiff,
       explanation: explanation.trim(),
       affectedFile: filePath,
       beforeSnippet: snippets.beforeSnippet,
       afterSnippet: snippets.afterSnippet,
     };
+
+    console.log(`✅ Patch built successfully for ${filePath}`);
+    return patch;
   }
 }
+
+
+/**
+ * Export PatcherService as default for easy importing
+ */
+export default PatcherService;
