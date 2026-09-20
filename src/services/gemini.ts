@@ -3,8 +3,10 @@
  * AI-powered code analysis using Google Gemini API
  */
 
+import { GoogleGenerativeAI } from '@google/genai';
 import { ProjectHealthReport, IssueItem, CategoryHealth } from '../types/doctor';
 import { PackedRepository } from './repoPacker';
+import { config } from '../config/environment';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -12,6 +14,22 @@ import { v4 as uuidv4 } from 'uuid';
  * Leverages Google Gemini's 1M+ token context window for whole-repo analysis
  */
 export class GeminiDoctorService {
+  private genAI: GoogleGenerativeAI;
+  private model: any;
+
+  constructor() {
+    console.log('🚀 Initializing Gemini AI client...');
+    
+    // Initialize Google Generative AI client
+    this.genAI = new GoogleGenerativeAI(config.geminiApiKey);
+    
+    // Use Gemini 1.5 Flash model with 1M+ token context
+    this.model = this.genAI.getGenerativeModel({
+      model: 'gemini-1.5-flash-latest',
+    });
+
+    console.log('✅ Gemini AI client initialized');
+  }
   
   /**
    * Analyze a packed repository and generate health report

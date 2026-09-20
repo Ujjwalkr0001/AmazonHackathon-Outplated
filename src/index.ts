@@ -13,3 +13,4 @@ export * from './types/doctor';
 export * from './config/environment';
 export { RepoPacker } from './services/repoPacker';
 export { PatcherService } from './services/patcher';
+export { GeminiDoctorService } from './services/gemini';
