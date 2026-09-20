@@ -3,6 +3,17 @@
   "version": "1.0.0",
   "description": "AI Codebase Doctor - Automated health diagnostics, multi-dimensional code auditing, and git diff patch generator",
   "main": "backend/src/server.ts",
+  "scripts": {
+    "test:gemini": "node -r dotenv/config backend/test-gemini.js",
+    "dev:backend": "tsx watch backend/src/server.ts",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"tsx watch backend/src/server.ts\" \"npm run dev --prefix frontend\"",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "tsc -p backend/tsconfig.json",
+    "build": "npm run build:frontend && npm run build:backend",
+    "start": "node backend/dist/server.js",
+    "doctor": "tsx backend/src/cli.ts"
+  },
   "keywords": [
     "ai",
     "code-review",
@@ -13,5 +24,16 @@
     "patch-generator"
   ],
   "author": "Codebase Doctor Team",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.13.10",
+    "@types/uuid": "^10.0.0",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
 }
