@@ -3,6 +3,8 @@
  * Handles repository file extraction and packing for AI analysis
  */
 
+import AdmZip from 'adm-zip';
+
 export interface PackedFile {
   path: string;
   content: string;
@@ -119,12 +121,31 @@ export class RepoPacker {
    * @returns Packed repository with filtered files
    */
   static packZipBuffer(buffer: Buffer, repoName: string): PackedRepository {
-    // Implementation will be added in next commits
+    console.log(`📦 Unpacking ZIP buffer for: ${repoName}`);
+    
+    // Initialize AdmZip with buffer
+    const zip = new AdmZip(buffer);
+    const zipEntries = zip.getEntries();
+    
+    console.log(`📂 Found ${zipEntries.length} entries in ZIP`);
+    
+    const packedFiles: PackedFile[] = [];
+    const fileTree: string[] = [];
+    let totalBytes = 0;
+
+    // Detect and remove root prefix (GitHub adds owner-repo-commit/)
+    let rootPrefix = '';
+    const firstEntry = zipEntries.find(e => e.isDirectory);
+    if (firstEntry && firstEntry.entryName.split('/').length <= 2) {
+      rootPrefix = firstEntry.entryName;
+      console.log(`🔍 Detected root prefix: ${rootPrefix}`);
+    }
+
     return {
       name: repoName,
-      files: [],
-      totalFiles: 0,
-      totalSize: 0,
+      files: packedFiles,
+      totalFiles: fileTree.length,
+      totalSize: totalBytes,
       timestamp: new Date().toISOString()
     };
   }
