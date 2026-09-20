@@ -44,4 +44,30 @@ const DEMO_REPOSITORIES = [
   },
 ];
 
+/**
+ * Health check & status
+ */
+app.get('/api/health', (req: Request, res: Response) => {
+  res.json({
+    status: 'healthy',
+    engine: 'Google Gemini 3.7 Flash',
+    awsIntegrated: awsService.isConfigured(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/**
+ * List available quick-demo repositories
+ */
+app.get('/api/demos', (req: Request, res: Response) => {
+  const demos = DEMO_REPOSITORIES.map(d => ({
+    id: d.id,
+    name: d.name,
+    description: d.description,
+    language: d.language,
+    expectedScore: d.expectedScore,
+  }));
+  res.json(demos);
+});
+
 export default app;
