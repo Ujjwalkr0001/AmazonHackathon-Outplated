@@ -1,0 +1,7 @@
+diff --git a/app.py b/app.py
+--- a/app.py
++++ b/app.py
+@@ -7,2 +7,2 @@
+ # HARDCODED SECRET / INSECURE CONFIG
+-app.config['SECRET_KEY'] = 'dev-insecure-flask-secret-key-9999'
++app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', os.urandom(24))
