@@ -11,6 +11,10 @@ export class AwsDoctorService {
   private bucketName: string;
   private tableName: string;
   private region: string;
+  private isAwsConfigured: boolean = false;
+
+  private localStore = new Map<string, ProjectHealthReport>();
+  private statusStore = new Map<string, ScanStatus>();
 
   constructor() {
     this.region = process.env.AWS_REGION || 'us-east-1';
@@ -28,6 +32,7 @@ export class AwsDoctorService {
         const ddbClient = new DynamoDBClient({ region: this.region, credentials });
         this.ddbDoc = DynamoDBDocumentClient.from(ddbClient);
         this.cloudWatch = new CloudWatchClient({ region: this.region, credentials });
+        this.isAwsConfigured = true;
         console.log(`[AWS] Codebase Doctor initialized with region: ${this.region}, S3: ${this.bucketName}, DynamoDB: ${this.tableName}`);
       } catch (err) {
         console.warn('[AWS] Failed to initialize AWS clients, running in local fallback mode:', err);
@@ -35,5 +40,9 @@ export class AwsDoctorService {
     } else {
       console.log('[AWS] No AWS credentials provided in .env, running in seamless local fallback mode.');
     }
+  }
+
+  isConfigured(): boolean {
+    return this.isAwsConfigured;
   }
 }
