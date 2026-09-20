@@ -18,8 +18,30 @@ export class PatcherService {
    * @returns Cleaned unified diff format
    */
   static cleanDiff(diff: string, filePath: string): string {
-    // Implementation will be added in next commits
-    return diff.trim();
+    let cleaned = diff.trim();
+
+    // Strip markdown code fences if present
+    if (cleaned.startsWith('```diff')) {
+      cleaned = cleaned.replace(/^```diff\s*/i, '').replace(/```$/i, '').trim();
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```\w*\s*/i, '').replace(/```$/i, '').trim();
+    }
+
+    // Normalize file path (convert backslashes to forward slashes)
+    const normalizedPath = filePath.replace(/\\/g, '/');
+
+    // Ensure unified diff header exists (--- and +++)
+    if (!cleaned.includes('--- a/') && !cleaned.includes('--- ')) {
+      cleaned = `--- a/${normalizedPath}\n+++ b/${normalizedPath}\n` + cleaned;
+    }
+
+    // Ensure git diff header exists
+    if (!cleaned.startsWith('diff --git')) {
+      cleaned = `diff --git a/${normalizedPath} b/${normalizedPath}\n` + cleaned;
+    }
+
+    console.log(`🔧 Cleaned diff for: ${normalizedPath}`);
+    return cleaned;
   }
 
   /**
