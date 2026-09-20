@@ -43,3 +43,88 @@ body {
 .font-mono {
   font-family: var(--font-mono);
 }
+
+/* Micro-interactions */
+.editorial-hover-lift {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
+}
+
+.editorial-hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+}
+
+.editorial-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-editorial);
+  border-radius: 24px;
+}
+
+.editorial-card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Subtle organic float animation */
+@keyframes soft-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: soft-float 5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: soft-float 6s ease-in-out 1.5s infinite;
+}
+
+/* Unified diff viewer styling */
+.diff-added {
+  background-color: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border-left: 3px solid #22c55e;
+}
+
+.diff-deleted {
+  background-color: rgba(239, 68, 68, 0.14);
+  color: #f87171;
+  border-left: 3px solid #ef4444;
+}
+
+.diff-context {
+  color: #949cb0;
+  border-left: 3px solid transparent;
+}
+
+.diff-hunk {
+  background-color: rgba(204, 255, 0, 0.08);
+  color: #ccff00;
+  font-weight: 600;
+  border-left: 3px solid #ccff00;
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(9, 10, 13, 0.95);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(204, 255, 0, 0.5);
+}
+
