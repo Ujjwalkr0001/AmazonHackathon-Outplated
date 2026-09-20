@@ -1,0 +1,15 @@
+{
+  "name": "vulnerable-node-api",
+  "version": "1.0.0",
+  "description": "Sample API with intentional vulnerabilities for AI Codebase Doctor demonstration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "lodash": "4.17.15",
+    "jsonwebtoken": "8.5.1",
+    "mysql2": "^3.0.0"
+  }
+}
