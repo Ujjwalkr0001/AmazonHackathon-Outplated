@@ -69,6 +69,10 @@ const IGNORED_FILENAMES = new Set([
   'poetry.lock',
 ]);
 
+// File size limits
+const MAX_FILE_SIZE_BYTES = 120 * 1024; // 120 KB per file
+const MAX_TOTAL_FILES = 200; // Limit total files for faster processing
+
 /**
  * RepoPacker - Intelligent repository file packer
  * Extracts and filters files from ZIP archives for AI analysis
@@ -140,6 +144,63 @@ export class RepoPacker {
       rootPrefix = firstEntry.entryName;
       console.log(`🔍 Detected root prefix: ${rootPrefix}`);
     }
+
+    // Process each entry in the ZIP
+    for (const entry of zipEntries) {
+      // Skip directories
+      if (entry.isDirectory) continue;
+
+      // Normalize path and remove root prefix
+      let relativePath = entry.entryName.replace(/\\/g, '/');
+      if (rootPrefix && relativePath.startsWith(rootPrefix)) {
+        relativePath = relativePath.slice(rootPrefix.length);
+      }
+
+      // Apply ignore filters
+      if (this.shouldIgnore(relativePath)) continue;
+
+      // Skip files exceeding size limit
+      if (entry.header.size > MAX_FILE_SIZE_BYTES) {
+        console.log(`⚠️  Skipping large file: ${relativePath} (${entry.header.size} bytes)`);
+        continue;
+      }
+
+      // Add to file tree
+      fileTree.push(relativePath);
+
+      // Stop adding file contents if we've hit the limit
+      if (packedFiles.length >= MAX_TOTAL_FILES) continue;
+
+      try {
+        // Extract file content as UTF-8
+        const textContent = entry.getData().toString('utf8');
+        
+        // Binary detection: skip files with null bytes
+        if (textContent.includes('\0')) {
+          console.log(`⚠️  Skipping binary file: ${relativePath}`);
+          continue;
+        }
+
+        // Get file extension
+        const extension = relativePath.substring(relativePath.lastIndexOf('.'));
+
+        // Create packed file entry
+        packedFiles.push({
+          path: relativePath,
+          content: textContent,
+          size: entry.header.size,
+          extension: extension
+        });
+
+        totalBytes += entry.header.size;
+
+      } catch (error) {
+        console.error(`❌ Error reading file ${relativePath}:`, error);
+        continue;
+      }
+    }
+
+    console.log(`✅ Packed ${packedFiles.length} files (${fileTree.length} total in tree)`);
 
     return {
       name: repoName,
