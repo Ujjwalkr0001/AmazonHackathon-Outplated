@@ -61,7 +61,34 @@ export class GeminiDoctorService {
     
     console.log(`🎯 Prompt ready (${prompt.length} chars)`);
     
-    // Implementation will be added in next commits
+    // Call Gemini API with 1M+ context window
+    try {
+      console.log(`🚀 Calling Gemini API...`);
+      
+      const result = await this.model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.1, // Deterministic analysis
+        },
+      });
+
+      const response = await result.response;
+      const rawText = response.text();
+      
+      console.log(`✅ Received response (${rawText.length} chars)`);
+      
+      // Parse JSON response
+      const parsed = this.parseGeminiOutput(rawText);
+      
+      console.log(`📊 Parsed ${parsed.issues?.length || 0} issues`);
+      
+      // Build complete report (will be implemented in next commit)
+      
+    } catch (error) {
+      console.error(`❌ Gemini API error:`, error);
+      throw error;
+    }
     
     // Return placeholder report
     return {
