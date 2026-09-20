@@ -196,4 +196,31 @@ Respond strictly with valid JSON conforming to this structure:
       missingTests: { ...emptyCategory }
     };
   }
+
+  /**
+   * Parse Gemini JSON output with error recovery
+   */
+  private parseGeminiOutput(raw: string): any {
+    try {
+      // Try direct JSON parse
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn('⚠️  Direct JSON parse failed, attempting cleanup...');
+      
+      // Strip markdown code fences
+      let cleaned = raw.trim();
+      if (cleaned.startsWith('```json')) {
+        cleaned = cleaned.replace(/^```json\s*/i, '').replace(/```$/i, '').trim();
+      } else if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```\s*/i, '').replace(/```$/i, '').trim();
+      }
+      
+      try {
+        return JSON.parse(cleaned);
+      } catch (e2) {
+        console.error('❌ JSON parse failed after cleanup:', e2);
+        throw new Error('Failed to parse Gemini response as JSON');
+      }
+    }
+  }
 }
