@@ -3,3 +3,10 @@ dist/
 .env
 *.log
 .DS_Store
+.env
+dist/
+build/
+temp_uploads/
+*.log
+.DS_Store
+.aws-sam/
