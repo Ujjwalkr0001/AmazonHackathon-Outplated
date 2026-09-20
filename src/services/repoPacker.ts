@@ -18,6 +18,13 @@ export interface PackedRepository {
   totalFiles: number;
   totalSize: number;
   timestamp: string;
+  fileTree: string[];
+  metadata: {
+    totalLines: number;
+    fileTypes: Record<string, number>;
+    largestFile: string;
+    smallestFile: string;
+  };
 }
 
 // Directories to ignore during repository packing
@@ -136,6 +143,10 @@ export class RepoPacker {
     const packedFiles: PackedFile[] = [];
     const fileTree: string[] = [];
     let totalBytes = 0;
+    let totalLines = 0;
+    const fileTypes: Record<string, number> = {};
+    let largestFile = { path: '', size: 0 };
+    let smallestFile = { path: '', size: Infinity };
 
     // Detect and remove root prefix (GitHub adds owner-repo-commit/)
     let rootPrefix = '';
@@ -184,6 +195,21 @@ export class RepoPacker {
         // Get file extension
         const extension = relativePath.substring(relativePath.lastIndexOf('.'));
 
+        // Count lines in file
+        const lineCount = textContent.split('\n').length;
+        totalLines += lineCount;
+
+        // Track file types
+        fileTypes[extension] = (fileTypes[extension] || 0) + 1;
+
+        // Track largest and smallest files
+        if (entry.header.size > largestFile.size) {
+          largestFile = { path: relativePath, size: entry.header.size };
+        }
+        if (entry.header.size < smallestFile.size) {
+          smallestFile = { path: relativePath, size: entry.header.size };
+        }
+
         // Create packed file entry
         packedFiles.push({
           path: relativePath,
@@ -201,13 +227,22 @@ export class RepoPacker {
     }
 
     console.log(`✅ Packed ${packedFiles.length} files (${fileTree.length} total in tree)`);
+    console.log(`📊 Total lines: ${totalLines}, Total size: ${totalBytes} bytes`);
+    console.log(`📈 File types:`, fileTypes);
 
     return {
       name: repoName,
       files: packedFiles,
       totalFiles: fileTree.length,
       totalSize: totalBytes,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      fileTree: fileTree,
+      metadata: {
+        totalLines: totalLines,
+        fileTypes: fileTypes,
+        largestFile: largestFile.path,
+        smallestFile: smallestFile.path !== '' ? smallestFile.path : 'N/A'
+      }
     };
   }
 }
