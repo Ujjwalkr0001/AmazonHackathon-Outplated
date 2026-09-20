@@ -1,0 +1,17 @@
+{
+  "name": "ai-codebase-doctor",
+  "version": "1.0.0",
+  "description": "AI Codebase Doctor - Automated health diagnostics, multi-dimensional code auditing, and git diff patch generator",
+  "main": "backend/src/server.ts",
+  "keywords": [
+    "ai",
+    "code-review",
+    "doctor",
+    "gemini",
+    "aws",
+    "security-scanner",
+    "patch-generator"
+  ],
+  "author": "Codebase Doctor Team",
+  "license": "MIT"
+}
