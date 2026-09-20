@@ -130,6 +130,49 @@ export class AwsDoctorService {
           console.warn('[AWS DynamoDB] Failed to save report to DynamoDB:', err.message);
         }
       }
+
+      if (this.cloudWatch) {
+        try {
+          await this.cloudWatch.send(new PutMetricDataCommand({
+            Namespace: 'CodebaseDoctor',
+            MetricData: [
+              {
+                MetricName: 'ScansCompleted',
+                Value: 1,
+                Unit: 'Count',
+              },
+              {
+                MetricName: 'HealthScore',
+                Value: report.overallScore,
+                Unit: 'None',
+              },
+              {
+                MetricName: 'TotalIssuesFound',
+                Value: report.metrics.totalIssues,
+                Unit: 'Count',
+              },
+              {
+                MetricName: 'CriticalIssuesFound',
+                Value: report.metrics.criticalCount,
+                Unit: 'Count',
+              },
+              {
+                MetricName: 'LinesOfCodeScanned',
+                Value: report.metrics.linesOfCode,
+                Unit: 'Count',
+              },
+              {
+                MetricName: 'ScanDurationMs',
+                Value: durationMs,
+                Unit: 'Milliseconds',
+              },
+            ],
+          }));
+          console.log('[AWS CloudWatch] Emitted telemetry metrics successfully');
+        } catch (err: any) {
+          console.warn('[AWS CloudWatch] Failed to emit metric data:', err.message);
+        }
+      }
     }
   }
 }
