@@ -23,3 +23,18 @@ export interface CodePatch {
   beforeSnippet?: string;
   afterSnippet?: string;
 }
+
+export interface IssueItem {
+  id: string;
+  title: string;
+  category: PillarCategory;
+  severity: IssueSeverity;
+  file: string;
+  lineStart?: number;
+  lineEnd?: number;
+  codeSnippet?: string;
+  description: string;
+  impact: string;
+  recommendation: string;
+  patch?: CodePatch;
+}
