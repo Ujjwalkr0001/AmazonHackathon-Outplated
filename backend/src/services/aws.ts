@@ -67,4 +67,25 @@ export class AwsDoctorService {
       }
     }
   }
+
+  async getStatus(scanId: string): Promise<ScanStatus | null> {
+    const local = this.statusStore.get(scanId);
+    if (local) return local;
+
+    if (this.ddbDoc && this.isAwsConfigured) {
+      try {
+        const res = await this.ddbDoc.send(new GetCommand({
+          TableName: this.tableName,
+          Key: { scanId },
+        }));
+        if (res.Item) {
+          return res.Item as ScanStatus;
+        }
+      } catch (err: any) {
+        console.warn(`[AWS DynamoDB] Failed to get scan status for ${scanId}:`, err.message);
+      }
+    }
+
+    return null;
+  }
 }
