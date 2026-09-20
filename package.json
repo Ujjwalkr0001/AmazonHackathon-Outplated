@@ -1,4 +1,30 @@
 {
+  "name": "ai-codebase-doctor-core",
+  "version": "1.0.0",
+  "description": "AI-powered code analysis engine with Gemini integration",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts"
+  },
+  "keywords": [
+    "ai",
+    "gemini",
+    "code-analysis",
+    "patch-generator"
+  ],
+  "author": "Person 3 - AI Integration Team",
+  "license": "MIT",
+  "dependencies": {
+    "@google/genai": "^2.23.0",
+    "adm-zip": "^0.5.16",
+    "uuid": "^11.1.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/node": "^22.13.10",
+    "@types/uuid": "^10.0.0",
   "name": "ai-codebase-doctor",
   "version": "1.0.0",
   "description": "AI Codebase Doctor - Automated health diagnostics, multi-dimensional code auditing, and git diff patch generator",
