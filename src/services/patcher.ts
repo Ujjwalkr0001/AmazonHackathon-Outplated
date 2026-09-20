@@ -50,10 +50,44 @@ export class PatcherService {
    * @returns Object with beforeSnippet and afterSnippet
    */
   static extractSnippets(diff: string): { beforeSnippet: string; afterSnippet: string } {
-    // Implementation will be added in next commits
+    const lines = diff.split('\n');
+    const beforeLines: string[] = [];
+    const afterLines: string[] = [];
+
+    let inHunk = false;
+
+    for (const line of lines) {
+      // Detect hunk header (@@)
+      if (line.startsWith('@@')) {
+        inHunk = true;
+        continue;
+      }
+      
+      // Skip non-hunk lines
+      if (!inHunk) continue;
+
+      // Process diff lines
+      if (line.startsWith('-')) {
+        // Removed line (before)
+        beforeLines.push(line.substring(1));
+      } else if (line.startsWith('+')) {
+        // Added line (after)
+        afterLines.push(line.substring(1));
+      } else if (line.startsWith(' ')) {
+        // Context line (appears in both)
+        beforeLines.push(line.substring(1));
+        afterLines.push(line.substring(1));
+      }
+    }
+
+    const beforeSnippet = beforeLines.join('\n').trim();
+    const afterSnippet = afterLines.join('\n').trim();
+
+    console.log(`📝 Extracted snippets: ${beforeLines.length} before, ${afterLines.length} after`);
+
     return {
-      beforeSnippet: '',
-      afterSnippet: ''
+      beforeSnippet,
+      afterSnippet
     };
   }
 
