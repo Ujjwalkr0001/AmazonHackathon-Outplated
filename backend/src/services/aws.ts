@@ -115,6 +115,21 @@ export class AwsDoctorService {
           console.warn('[AWS S3] Failed to upload report to S3:', err.message);
         }
       }
+
+      if (this.ddbDoc) {
+        try {
+          await this.ddbDoc.send(new PutCommand({
+            TableName: this.tableName,
+            Item: {
+              ...report,
+              ttl: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60),
+            },
+          }));
+          console.log(`[AWS DynamoDB] Stored report ${report.scanId} in ${this.tableName}`);
+        } catch (err: any) {
+          console.warn('[AWS DynamoDB] Failed to save report to DynamoDB:', err.message);
+        }
+      }
     }
   }
 }
