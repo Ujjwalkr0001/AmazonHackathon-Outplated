@@ -24,6 +24,20 @@
     "patch-generator"
   ],
   "author": "Codebase Doctor Team",
+  "contributors": [
+    {
+      "name": "Ujjwal Kumar",
+      "github": "Ujjwalkr0001",
+      "email": "ujjwalkr0001@users.noreply.github.com",
+      "role": "Project Lead / Creator"
+    },
+    {
+      "name": "Trae AI Assistant",
+      "github": "trae-ai",
+      "role": "Automated Contributor",
+      "url": "https://trae.ai"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "@aws-sdk/client-cloudwatch": "^3.758.0",
