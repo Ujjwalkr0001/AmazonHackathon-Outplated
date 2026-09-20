@@ -223,4 +223,16 @@ Respond strictly with valid JSON conforming to this structure:
       }
     }
   }
+
+  /**
+   * Calculate letter grade from numeric score
+   */
+  private calculateGrade(score: number): 'A+' | 'A' | 'B' | 'C' | 'D' | 'F' {
+    if (score >= 95) return 'A+';
+    if (score >= 85) return 'A';
+    if (score >= 75) return 'B';
+    if (score >= 65) return 'C';
+    if (score >= 55) return 'D';
+    return 'F';
+  }
 }
