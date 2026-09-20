@@ -60,23 +60,19 @@ app.get('/api/health', (req: Request, res: Response) => {
  * List available quick-demo repositories
  */
 app.get('/api/demos', (req: Request, res: Response) => {
-  const demos = DEMO_REPOSITORIES.map(d => ({
+  res.json(DEMO_REPOSITORIES.map(d => ({
     id: d.id,
     name: d.name,
     description: d.description,
     language: d.language,
     expectedScore: d.expectedScore,
-  }));
-  res.json(demos);
+  })));
 });
 
-async function executeScan(
-  scanId: string,
-  repoName: string,
-  getPacked: () => Promise<PackedRepository>,
-  sourceUrl?: string,
-  repoType: 'github' | 'upload' | 'demo' = 'demo'
-) {
+/**
+ * Asynchronous scan runner
+ */
+async function executeScan(scanId: string, repoName: string, getPacked: () => Promise<PackedRepository>, sourceUrl?: string, repoType: 'github' | 'upload' | 'demo' = 'upload') {
   const startTime = Date.now();
   try {
     await awsService.updateStatus({
@@ -139,6 +135,7 @@ app.post('/api/scan', async (req: Request, res: Response): Promise<void> => {
 
     const repoName = url.replace(/https?:\/\/github\.com\//i, '').replace(/\.git$/i, '');
     
+    // Initial status
     await awsService.updateStatus({
       scanId,
       status: 'queued',
@@ -147,6 +144,7 @@ app.post('/api/scan', async (req: Request, res: Response): Promise<void> => {
       repoName,
     });
 
+    // Run async
     executeScan(scanId, repoName, () => RepoPacker.packGitHubRepo(url), url, 'github');
     res.json({ scanId, repoName, status: 'queued' });
     return;
@@ -220,5 +218,53 @@ app.get('/api/report/:scanId', async (req: Request, res: Response): Promise<void
   }
   res.json(report);
 });
+
+/**
+ * Download raw .patch file for a specific issue
+ */
+app.get('/api/patch/:scanId/:issueId', async (req: Request, res: Response): Promise<void> => {
+  const scanId = String(req.params.scanId);
+  const issueId = String(req.params.issueId);
+  const report = await awsService.getReport(scanId);
+  if (!report) {
+    res.status(404).json({ error: 'Report not found' });
+    return;
+  }
+
+  const issue = report.issues.find(i => i.id === issueId);
+  if (!issue || !issue.patch) {
+    res.status(404).json({ error: 'Patch not found for this issue' });
+    return;
+  }
+
+  const filename = `${issue.id}_fix.patch`;
+  res.setHeader('Content-Type', 'text/x-diff');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(issue.patch.diff);
+});
+
+// Serve frontend in production build if present
+const frontendDist = path.resolve('frontend/dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
+
+// Export AWS Lambda handler for serverless deployment
+import serverless from 'serverless-http';
+export const handler = serverless(app);
+
+// Only listen locally if not running in AWS Lambda
+if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  app.listen(port, () => {
+    console.log(`=======================================================`);
+    console.log(`  AI Codebase Doctor Server running at http://localhost:${port}`);
+    console.log(`  Gemini Model: Google Gemini 3.7 Flash`);
+    console.log(`  AWS Cloud Integration: ${awsService.isConfigured() ? 'ACTIVE' : 'LOCAL FALLBACK'}`);
+    console.log(`=======================================================`);
+  });
+}
 
 export default app;
