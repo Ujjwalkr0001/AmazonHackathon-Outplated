@@ -175,4 +175,25 @@ export class AwsDoctorService {
       }
     }
   }
+
+  async getReport(scanId: string): Promise<ProjectHealthReport | null> {
+    const local = this.localStore.get(scanId);
+    if (local) return local;
+
+    if (this.ddbDoc && this.isAwsConfigured) {
+      try {
+        const res = await this.ddbDoc.send(new GetCommand({
+          TableName: this.tableName,
+          Key: { scanId },
+        }));
+        if (res.Item) {
+          return res.Item as ProjectHealthReport;
+        }
+      } catch (err: any) {
+        console.warn(`[AWS DynamoDB] Failed to fetch report ${scanId}:`, err.message);
+      }
+    }
+
+    return null;
+  }
 }
