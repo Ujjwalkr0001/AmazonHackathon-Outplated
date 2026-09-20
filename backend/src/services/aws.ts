@@ -88,4 +88,33 @@ export class AwsDoctorService {
 
     return null;
   }
+
+  async saveReport(report: ProjectHealthReport, durationMs: number = 0): Promise<void> {
+    this.localStore.set(report.scanId, report);
+    this.statusStore.set(report.scanId, {
+      scanId: report.scanId,
+      status: 'completed',
+      progress: 100,
+      currentStep: 'Analysis complete',
+      repoName: report.repoName,
+      report,
+    });
+
+    if (this.isAwsConfigured) {
+      if (this.s3) {
+        try {
+          const reportJson = JSON.stringify(report, null, 2);
+          await this.s3.send(new PutObjectCommand({
+            Bucket: this.bucketName,
+            Key: `reports/${report.scanId}.json`,
+            Body: Buffer.from(reportJson),
+            ContentType: 'application/json',
+          }));
+          console.log(`[AWS S3] Uploaded report to s3://${this.bucketName}/reports/${report.scanId}.json`);
+        } catch (err: any) {
+          console.warn('[AWS S3] Failed to upload report to S3:', err.message);
+        }
+      }
+    }
+  }
 }
